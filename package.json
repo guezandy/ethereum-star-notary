@@ -1,0 +1,30 @@
+{
+  "name": "ethereumstarnotary",
+  "version": "1.0.0",
+  "description": "Ethereum star notary service",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/guezandy/ethereum-star-notary.git"
+  },
+  "author": "Andrew Rodriguez (guezandy)",
+  "license": "ISC",
+  "dependencies": {
+    "handlebars": "^4.0.12",
+    "hapi": "^17.6.0",
+    "nodemon": "^1.18.4",
+    "truffle": "^4.1.14",
+    "vision": "^5.4.0",
+    "openzeppelin-solidity": "^2.0.0-rc.3"
+  },
+  "bugs": {
+    "url": "https://github.com/guezandy/ethereum-star-notary/issues"
+  },
+  "homepage": "https://github.com/guezandy/ethereum-star-notary#readme",
+  "devDependencies": {
+    "truffle-solidity-loader": "^0.1.0"
+  }
+}
