@@ -10,7 +10,7 @@
 [Async-await tips for solidity and truffle](https://medium.com/coinmonks/testing-solidity-with-truffle-and-async-await-396e81c54f93)
 [Unique identifiers per star](https://en.wikipedia.org/wiki/Hipparcos)
 [Star data](https://github.com/ofrohn/d3-celestial/tree/master/data)
-[Night sky visualizer](https://github.com/ofrohn/d3-celestial)
+[React and HapiJS](https://github.com/jedireza/hapi-react-views/tree/master/examples/remount)
 
 ## Class definitions
 

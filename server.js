@@ -1,47 +1,60 @@
 'use strict';
-
+const Path = require('path');
 const Hapi = require('hapi');
-const Vision = require('vision')
-const Handlebars = require('handlebars')
+const Inert = require('inert');
+const Vision = require('vision');
+const HapiReactViews = require('hapi-react-views');
 
-// Create a server with a host and port
-const server = Hapi.server({
-    host: 'localhost',
-    port: 8005
+
+require('babel-core/register')({
+    presets: ['react', 'env']
 });
 
-// Add the route
-server.route({
-    method: 'GET',
-    path: '/',
-    handler: function (request, h) {
-        return h.view('index');
-    }
-});
 
-// Start the server
-async function start() {
-    // Initialize the data needed
-    await server.register({
-        plugin: require('vision') // add template rendering support in hapi
+const main = async function () {
+
+    const server = Hapi.Server({
+        port: process.env.PORT
     });
-    // configure template support   
+
+    await server.register([Inert, Vision]);
+
     server.views({
         engines: {
-            html: Handlebars
+            jsx: HapiReactViews
         },
-        path: __dirname + '/views',
-        // Default path for route '/'
-        layout: 'index'
-    })
-    try {
-        await server.start();
-    } catch (err) {
-        console.log(err);
-        process.exit(1);
-    }
-    console.log('Server running at:', server.info.uri);
+        relativeTo: __dirname,
+        path: 'components',
+        compileOptions: {
+            renderMethod: 'renderToString',
+            layoutPath: Path.join(__dirname, 'components'),
+            layout: 'html'
+        }
+    });
+
+    server.route({
+        method: 'GET',
+        path: '/assets/client.js',
+        handler: {
+            file: Path.join(__dirname, './assets/client.js')
+        }
+    });
+
+    server.route({
+        method: 'GET',
+        path: '/',
+        handler: (request, h) => {
+
+            const context = { foo: 'baz' };
+            context.state = `window.state = ${JSON.stringify(context)};`;
+
+            return h.view('app', context);
+        }
+    });
+
+    await server.start();
+
+    console.log(`Server is listening at ${server.info.uri}`);
 };
 
-
-start();
+main();
