@@ -11,6 +11,7 @@
 [Unique identifiers per star](https://en.wikipedia.org/wiki/Hipparcos)
 [Star data](https://github.com/ofrohn/d3-celestial/tree/master/data)
 [React and HapiJS](https://github.com/jedireza/hapi-react-views/tree/master/examples/remount)
+[Breaking change for using web3](https://medium.com/metamask/https-medium-com-metamask-breaking-change-injecting-web3-7722797916a8)
 
 ## Class definitions
 

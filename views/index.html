@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Star Notary</title>
+    <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js/dist/web3.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Star Notary</h1>
+
+        <div class="row">
+            <label class="bold">Star Name:</label>
+            <label id="star-name"></label>
+        </div>
+
+        <div class="row">
+            <label class="bold">Star Owner:</label>
+            <label id="star-owner"></label>
+        </div>
+
+        <button id="claim-button" onclick="claimButtonClicked()">Claim Star</button>
+    </div>
+
+    <script>
+        window.addEventListener('load', async () => {
+            // Modern dapp browsers...
+            if (ethereum) {
+                web3 = new Web3(ethereum);
+                try {
+                    await ethereum.enable();
+                } catch (error) {
+                    console.log("User denied access to wallet");
+                }
+            }
+            // Legacy dapp browsers - used for legacy metamask implementation
+            else if (typeof web3 != 'undefined') {
+                web3 = new Web3(web3.currentProvider);
+            }
+            // Non-dapp browsers - lets instantiate Ganache
+            else {
+                web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:7545"));
+            }
+        });
+
+    </script>
+</body>
+
+</html>
