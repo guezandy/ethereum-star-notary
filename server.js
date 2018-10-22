@@ -19,14 +19,6 @@ server.route({
     }
 });
 
-server.route({
-    method: 'POST',
-    path: '/claimStar',
-    handler: (request, h) => {
-        return request.payload;
-    }
-});
-
 // Start the server
 async function start() {
     await server.register({

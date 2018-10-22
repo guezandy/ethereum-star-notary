@@ -5,55 +5,102 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Star Notary</title>
+    <!-- Stylesheets -->
+    <link href='https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css'
+          rel='stylesheet'
+          integrity='sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO'
+          crossorigin='anonymous'>
+
     <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js/dist/web3.min.js"></script>
+    <style>
+        html,
+        body {
+            height: 100%;
+        }
+
+        form {
+            width: 500px;
+        }
+
+        .flex-container {
+            height: 100%;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .unit-radio {
+            display: flex;
+            flex-flow: column;
+            align-items: baseline;
+            margin-top: 20px;
+        }
+
+        .jumbotron {
+            display: flex;
+            flex-flow: column;
+            align-items: center;
+            text-align: center;
+        }
+    </style>
 </head>
 
 <body>
-    <div class="container">
-        <h1>Star Notary</h1>
+    <div class="flex-container">
+        <div class="jumbotron">
+            <h1>Star Notary</h1>
+            <h3 id="status">Status: Loading...</h3>
+            <h5 id="address">0x00</h5>
 
-        <div class="row">
-            <label class="bold">Star Name:</label>
-            <label id="star-name"></label>
+            <div class="row">
+                <label class="bold">Star Name:</label>
+                <label id="star-name"></label>
+            </div>
+
+            <div class="row">
+                <label class="bold">Star Owner:</label>
+                <label id="star-owner"></label>
+            </div>
+
+            <button id="claim-button" onclick="claimButtonClicked()">Claim Star</button>
+            <button id="claim-button" onclick="putStarForSaleButtonClicked()">Put star for sale</button>
         </div>
-
-        <div class="row">
-            <label class="bold">Star Owner:</label>
-            <label id="star-owner"></label>
-        </div>
-
-        <button id="claim-button" onclick="claimButtonClicked()">Claim Star</button>
     </div>
 
     <script>
         let StarNotary, starNotary;
-
-        (async () => {
+        window.addEventListener('load', async () => {
             // Modern dapp browsers...
             if (ethereum) {
                 web3 = new Web3(ethereum);
                 try {
-                    console.log('Modern metamask');
                     await ethereum.enable();
+                    document.getElementById('status').innerHTML('Connected via Web3 injection - probably metamask');
+                    console.log('1');
                 } catch (error) {
-                    console.log("User denied access to wallet");
+                    console.log('1', error);
                 }
             }
             // Legacy dapp browsers - used for legacy metamask implementation
             else if (typeof web3 != 'undefined') {
-                console.log('Old metamask');
                 web3 = new Web3(web3.currentProvider);
+                document.getElementById('status').innerText('Connected via Web3 injection - legacy metamask');
+                console.log('2');
             }
             // Non-dapp browsers - lets instantiate Ganache
             else {
-                console.log('Ganache');
                 web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:7545"));
+                document.getElementById('status').innerText('Connected via Ganache CLI - launch ganache CLI locally on port 7545 for this to work correctly.');
+                console.log('3');
             }
 
             // The interface definition for your smart contract (the ABI) 
             // ABI comes from compiled contracts on smart_contracts/build/contracts/StarNotary.json
             StarNotary = web3.eth.contract(
-                [{
+                [
+                    {
                     "constant": true,
                     "inputs": [
                         {
@@ -136,11 +183,11 @@
                         "type": "uint256"
                         }
                     ],
-                    "name": "tokenIdToStarInfo",
+                    "name": "starsTokenIdsForSale",
                     "outputs": [
                         {
-                        "name": "name",
-                        "type": "string"
+                        "name": "",
+                        "type": "uint256"
                         }
                     ],
                     "payable": false,
@@ -189,6 +236,25 @@
                     "outputs": [],
                     "payable": false,
                     "stateMutability": "nonpayable",
+                    "type": "function"
+                    },
+                    {
+                    "constant": true,
+                    "inputs": [
+                        {
+                        "name": "",
+                        "type": "uint256"
+                        }
+                    ],
+                    "name": "usedTokenIds",
+                    "outputs": [
+                        {
+                        "name": "",
+                        "type": "bool"
+                        }
+                    ],
+                    "payable": false,
+                    "stateMutability": "view",
                     "type": "function"
                     },
                     {
@@ -366,12 +432,20 @@
                     "constant": false,
                     "inputs": [
                         {
-                        "name": "_name",
+                        "name": "dec",
                         "type": "string"
                         },
                         {
-                        "name": "_tokenId",
-                        "type": "uint256"
+                        "name": "mag",
+                        "type": "string"
+                        },
+                        {
+                        "name": "cent",
+                        "type": "string"
+                        },
+                        {
+                        "name": "starStory",
+                        "type": "string"
                         }
                     ],
                     "name": "createStar",
@@ -420,7 +494,60 @@
                         "type": "uint256"
                         }
                     ],
-                    "name": "starIsForSale",
+                    "name": "tokenIdToStarInfo",
+                    "outputs": [
+                        {
+                        "name": "",
+                        "type": "string"
+                        },
+                        {
+                        "name": "",
+                        "type": "string"
+                        },
+                        {
+                        "name": "",
+                        "type": "string"
+                        },
+                        {
+                        "name": "",
+                        "type": "string"
+                        }
+                    ],
+                    "payable": false,
+                    "stateMutability": "view",
+                    "type": "function"
+                    },
+                    {
+                    "constant": true,
+                    "inputs": [],
+                    "name": "_getStarsForSale",
+                    "outputs": [
+                        {
+                        "name": "",
+                        "type": "uint256[]"
+                        }
+                    ],
+                    "payable": false,
+                    "stateMutability": "view",
+                    "type": "function"
+                    },
+                    {
+                    "constant": true,
+                    "inputs": [
+                        {
+                        "name": "dec",
+                        "type": "string"
+                        },
+                        {
+                        "name": "mag",
+                        "type": "string"
+                        },
+                        {
+                        "name": "cent",
+                        "type": "string"
+                        }
+                    ],
+                    "name": "_checkIfStarExists",
                     "outputs": [
                         {
                         "name": "",
@@ -430,35 +557,108 @@
                     "payable": false,
                     "stateMutability": "view",
                     "type": "function"
-                }]
+                    },
+                    {
+                    "constant": true,
+                    "inputs": [
+                        {
+                        "name": "tokenId",
+                        "type": "uint256"
+                        }
+                    ],
+                    "name": "_checkIfTokenExists",
+                    "outputs": [
+                        {
+                        "name": "",
+                        "type": "bool"
+                        }
+                    ],
+                    "payable": false,
+                    "stateMutability": "view",
+                    "type": "function"
+                    },
+                    {
+                    "constant": true,
+                    "inputs": [
+                        {
+                        "name": "_tokenId",
+                        "type": "uint256"
+                        }
+                    ],
+                    "name": "_starIsForSale",
+                    "outputs": [
+                        {
+                        "name": "",
+                        "type": "bool"
+                        }
+                    ],
+                    "payable": false,
+                    "stateMutability": "view",
+                    "type": "function"
+                    },
+                    {
+                    "constant": true,
+                    "inputs": [
+                        {
+                        "name": "dec",
+                        "type": "string"
+                        },
+                        {
+                        "name": "mag",
+                        "type": "string"
+                        },
+                        {
+                        "name": "cent",
+                        "type": "string"
+                        }
+                    ],
+                    "name": "_getTokenIdFromStarDetails",
+                    "outputs": [
+                        {
+                        "name": "",
+                        "type": "uint256"
+                        }
+                    ],
+                    "payable": false,
+                    "stateMutability": "pure",
+                    "type": "function"
+                    }
+                ]
             );
             // Grab the contract at specified deployed address with the interface defined by the ABI
             starNotary = StarNotary.at('0x9445D8994e09B38f31CC18D8458128FFCa7a345E');
             // TODO( disable claim button til here )
-        })();
+        });
 
         // Enable claim button being clicked
         const claimButtonClicked = async () => {
-            console.log('clicked button');
-            console.log(web3.eth.accounts);
             web3.eth.getAccounts(async (error, accounts) => { 
                 if (error) { 
                     console.log(error)
                     return
                 }
-                console.log('got no errors', accounts);
                 var account = accounts[0];
-                const tx = starNotary.createStar('Test star', 1, (error, result) => {
-                    if(!error) {
-                        console.log('no error');
-                    } else {
+                const tx = starNotary.createStar('Test', 'Test', 'Test', 'Story', (error, result) => {
+                    // do something
+                });
+            });
+        }
+
+        const putStarForSaleButtonClicked = async () => {
+            web3.eth.getAccounts(async (error, accounts) => { 
+                if (error) { 
+                    console.log(error)
+                    return
+                }
+                var account = accounts[0];
+                const tx = starNotary.putStarUpForSale('46808208908969258150633901590006899545707850379521685977531724821691078186796', 1, (error, result) => {
+                    // do something
+                    if(error) {
                         console.log('error');
                     }
                 });
-                console.log(tx);
             });
         }
-        
     </script>
 </body>
 
