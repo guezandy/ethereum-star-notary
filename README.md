@@ -12,6 +12,8 @@
 [Star data](https://github.com/ofrohn/d3-celestial/tree/master/data)
 [React and HapiJS](https://github.com/jedireza/hapi-react-views/tree/master/examples/remount)
 [Breaking change for using web3](https://medium.com/metamask/https-medium-com-metamask-breaking-change-injecting-web3-7722797916a8)
+[Hashing in solidity](https://ethereum.stackexchange.com/questions/50592/what-does-warning-this-function-only-accepts-a-single-bytes-argument-please)
+[Assert vs Require vs Revert](https://medium.com/blockchannel/the-use-of-revert-assert-and-require-in-solidity-and-the-new-revert-opcode-in-the-evm-1a3a7990e06e)
 
 ## Class definitions
 

@@ -1,23 +1,32 @@
 pragma solidity ^0.4.23;
 
 
-import 'openzeppelin-solidity/contracts/token/ERC721/ERC721.sol';
+import "openzeppelin-solidity/contracts/token/ERC721/ERC721.sol";
 
 contract StarNotary is ERC721 { 
 
     struct Star { 
-        string name;
+        string dec;
+        string mag;
+        string cent;
+        string starStory;
     }
 
+    mapping(uint256 => bool) public usedTokenIds;
     mapping(uint256 => Star) public tokenIdToStarInfo; 
     mapping(uint256 => uint256) public starsForSale;
 
-    function createStar(string _name, uint256 _tokenId) public { 
-        Star memory newStar = Star(_name);
+    function createStar(string dec, string mag, string cent, string starStory) public { 
+        require(this._checkIfStarExists(dec, mag, cent) == false, "Duplicate star");
+        
+        uint256 tokenId = this._getTokenIdFromStarDetails(dec, mag, cent);
 
-        tokenIdToStarInfo[_tokenId] = newStar;
+        Star memory newStar = Star(dec, mag, cent, starStory);
 
-        _mint(msg.sender, _tokenId);
+        usedTokenIds[tokenId] = true;
+        tokenIdToStarInfo[tokenId] = newStar;
+
+        _mint(msg.sender, tokenId);
     }
 
     function putStarUpForSale(uint256 _tokenId, uint256 _price) public { 
@@ -26,7 +35,8 @@ contract StarNotary is ERC721 {
         starsForSale[_tokenId] = _price;
     }
 
-    function buyStar(uint256 _tokenId) public payable { 
+    function buyStar(uint256 _tokenId) public payable {
+        // TODO Does star even exist
         require(starsForSale[_tokenId] > 0, "Star specified is not for sale");
 
         uint256 starCost = starsForSale[_tokenId];
@@ -46,7 +56,25 @@ contract StarNotary is ERC721 {
         }
     }
 
-    function starIsForSale(uint256 _tokenId) public view returns (bool) {
+    // Helper methods
+    function _checkIfStarExists(string dec, string mag, string cent) public view returns (bool) {
+        uint256 tokenId = this._getTokenIdFromStarDetails(dec, mag, cent);
+        return this._checkIfTokenExists(tokenId);
+    }
+
+    function _checkIfTokenExists(uint256 tokenId) public view returns (bool) {
+        return usedTokenIds[tokenId];
+    }
+
+    function _starIsForSale(uint256 _tokenId) public view returns (bool) {
         return starsForSale[_tokenId] > 0;
+    }
+
+    function _getTokenIdFromStarDetails(string dec, string mag, string cent) public pure returns (uint256) {
+        return uint256(
+            keccak256(
+                abi.encodePacked(dec, mag, cent)
+            )
+        );
     }
 }
