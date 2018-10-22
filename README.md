@@ -3,6 +3,7 @@
 
 ## Project specifications
 + ERC-721 implementation using OpenZepellen
++ See RinkebyDeploy.md for Ethereum transaction/addresses
 
 ## Outside resources
 + [Async-await tips for solidity and truffle](https://medium.com/coinmonks/testing-solidity-with-truffle-and-async-await-396e81c54f93)
