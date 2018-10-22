@@ -54,48 +54,85 @@
             <h3 id="status">Status: Loading...</h3>
             <h5 id="address">0x00</h5>
 
-            <div class="row">
-                <label class="bold">Star Name:</label>
-                <label id="star-name"></label>
+            <div class="row" style="display: flex; justify-content: center">
+                <label for="dec">Enter Dec</label>
+                <input name='dec' id='dec' class="form-control" type='text' placeholder='Enter dec' required>
             </div>
 
-            <div class="row">
-                <label class="bold">Star Owner:</label>
-                <label id="star-owner"></label>
+            <div class="row" style="display: flex; justify-content: center">
+                <label for="dec">Enter Mag</label>
+                <input name='mag' id='mag' class="form-control" type='text' placeholder='Enter mag' required>
             </div>
 
-            <button id="claim-button" onclick="claimButtonClicked()">Claim Star</button>
-            <button id="claim-button" onclick="putStarForSaleButtonClicked()">Put star for sale</button>
+            <div class="row" style="display: flex; justify-content: center">
+                <label for="cent">Enter Cent</label>
+                <input name='cent' id='cent' class="form-control" type='text' placeholder='Enter cent' required>
+            </div>
+
+            <div class="row" style="display: flex; justify-content: center">
+                <label for="story">Enter Story</label>
+                <input name='story' id='story' class="form-control" type='text' placeholder='Enter story' required>
+            </div>
+
+            <div class="row" style="margin-top: 10px;">
+                <button class='btn btn-success mb-3' id="create-star-button" onclick="createStarButtonClicked()" disabled>Create Star</button>
+            </div>
+
+            <div class="row" style="margin-top: 10px;">    
+                <h4 id='create-star-error' style='color: red;'></h4>
+            </div>
+
+            <!-- Lookup star by tokenId -->
+            <div class="row" style="display: flex; justify-content: center">
+                <label for="token">Enter token id for star lookup</label>
+                <input name='token' id='token' class="form-control" type='text' placeholder='Enter token id' required>
+            </div>
+            <div class="row" style="margin-top: 10px;">
+                <button class='btn btn-success mb-3' id="star-lookup" onclick="starLookupButtonClicked()" disabled>Star lookup</button>
+            </div>
+
+            <div class="row" style="margin-top: 10px;">    
+                <h4 id='star-lookup-result' style='color: green;'></h4>
+                <h4 id='star-lookup-error' style='color: red;'></h4>
+            </div>
         </div>
     </div>
 
     <script>
         let StarNotary, starNotary;
-        window.addEventListener('load', async () => {
+        let error = false;
+        (async () => {
             // Modern dapp browsers...
             if (ethereum) {
                 web3 = new Web3(ethereum);
                 try {
                     await ethereum.enable();
-                    document.getElementById('status').innerHTML('Connected via Web3 injection - probably metamask');
-                    console.log('1');
+                    document.getElementById('status').innerText = 'Connected! Via Web3 injection - probably metamask';
                 } catch (error) {
-                    console.log('1', error);
+                    document.getElementById('status').innerText = 'Error! Connecting to Web3 injection - probably metamask error';
+                    error = true;
                 }
             }
             // Legacy dapp browsers - used for legacy metamask implementation
             else if (typeof web3 != 'undefined') {
                 web3 = new Web3(web3.currentProvider);
-                document.getElementById('status').innerText('Connected via Web3 injection - legacy metamask');
-                console.log('2');
+                document.getElementById('status').innerText = 'Connected! Via Web3 injection - legacy metamask';
             }
             // Non-dapp browsers - lets instantiate Ganache
             else {
                 web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:7545"));
-                document.getElementById('status').innerText('Connected via Ganache CLI - launch ganache CLI locally on port 7545 for this to work correctly.');
-                console.log('3');
+                document.getElementById('status').innerText = 'Connected! Via Ganache CLI - launch ganache CLI locally on port 7545 for this to work correctly.';
             }
-
+            if (!error) {
+                web3.eth.getAccounts(async (error, accounts) => { 
+                    if (error) { 
+                        return;
+                    }
+                    document.getElementById('address').innerText = 'Address: ' + accounts[0];
+                });
+                document.querySelector('#create-star-button').disabled = false;
+                document.querySelector('#star-lookup').disabled = false;
+            }
             // The interface definition for your smart contract (the ABI) 
             // ABI comes from compiled contracts on smart_contracts/build/contracts/StarNotary.json
             StarNotary = web3.eth.contract(
@@ -627,37 +664,56 @@
             );
             // Grab the contract at specified deployed address with the interface defined by the ABI
             starNotary = StarNotary.at('0x9445D8994e09B38f31CC18D8458128FFCa7a345E');
-            // TODO( disable claim button til here )
-        });
+        })();
 
+        // Set variables
+
+        // Onclick handlers
         // Enable claim button being clicked
-        const claimButtonClicked = async () => {
+        const createStarButtonClicked = async () => {
             web3.eth.getAccounts(async (error, accounts) => { 
                 if (error) { 
-                    console.log(error)
                     return
                 }
                 var account = accounts[0];
-                const tx = starNotary.createStar('Test', 'Test', 'Test', 'Story', (error, result) => {
-                    // do something
+
+                const dec = document.querySelector('#dec').value;
+                const mag = document.querySelector('#mag').value;
+                const cent = document.querySelector('#cent').value;
+                const story = document.querySelector('#story').value;
+
+                if(!dec || !mag || !cent || !story) {
+                    document.querySelector('#create-star-error').innerText = 'All fields are required';
+                    return;
+                }
+
+                starNotary.createStar(dec, mag, cent, story, (error, result) => {
+                    if(error) {
+                        document.querySelector('#create-star-error').innerText = `Contract failed: ${error.message}`;
+                    }
                 });
             });
         }
 
-        const putStarForSaleButtonClicked = async () => {
-            web3.eth.getAccounts(async (error, accounts) => { 
+        const starLookupButtonClicked = async () => {
+             web3.eth.getAccounts(async (error, accounts) => { 
                 if (error) { 
-                    console.log(error)
                     return
                 }
                 var account = accounts[0];
-                const tx = starNotary.putStarUpForSale('46808208908969258150633901590006899545707850379521685977531724821691078186796', 1, (error, result) => {
-                    // do something
-                    if(error) {
-                        console.log('error');
+                const token = document.querySelector('#token').value;
+                if (!token) {
+                    document.querySelector('#star-lookup-error').innerText = 'All fields are required';
+                    return;
+                }
+                const tx = starNotary.tokenIdToStarInfo(token, (error, result) => {
+                    if (error) {
+                        document.querySelector('#star-lookup-error').innerText = 'Error: ' + error.message;
+                        return;
                     }
+                    document.querySelector('#star-lookup-result').innerText = result;
                 });
-            });
+            });   
         }
     </script>
 </body>

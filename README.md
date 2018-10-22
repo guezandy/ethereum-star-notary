@@ -21,6 +21,5 @@ Named starsForSale() method _getStarsForSale to not conflict with mapping
 + `npm install`
 Download of all required packages
 + `npm start`
-As soon as you start the server for the first time - an initial Genesis block will be created as well as an empty list of star registry requests. Basically, initializing all Objects needed for functionality.
 
 ## API GUIDE
