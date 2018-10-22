@@ -1,9 +1,7 @@
 # Ethereum Star notary service
 + By: Andrew Rodriguez
-+ Production URL: n/a
 
 ## Project specifications
-+ Node app using HapiJS
 + ERC-721 implementation using OpenZepellen
 
 ## Outside resources
@@ -15,12 +13,9 @@
 [Hashing in solidity](https://ethereum.stackexchange.com/questions/50592/what-does-warning-this-function-only-accepts-a-single-bytes-argument-please)
 [Assert vs Require vs Revert](https://medium.com/blockchannel/the-use-of-revert-assert-and-require-in-solidity-and-the-new-revert-opcode-in-the-evm-1a3a7990e06e)
 
-## Class definitions
 
-
-## Level db key value stored
-
-
+## Diverge from requirements
+Named starsForSale() method _getStarsForSale to not conflict with mapping
 
 ## Running guide
 + `npm install`

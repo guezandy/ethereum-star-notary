@@ -16,6 +16,8 @@ contract StarNotary is ERC721 {
     mapping(uint256 => Star) public tokenIdToStarInfo; 
     mapping(uint256 => uint256) public starsForSale;
 
+    uint256[] public starsTokenIdsForSale;
+
     function createStar(string dec, string mag, string cent, string starStory) public { 
         require(this._checkIfStarExists(dec, mag, cent) == false, "Duplicate star");
         
@@ -33,6 +35,7 @@ contract StarNotary is ERC721 {
         require(this.ownerOf(_tokenId) == msg.sender, "Sender does not own token");
 
         starsForSale[_tokenId] = _price;
+        starsTokenIdsForSale.push(_tokenId);
     }
 
     function buyStar(uint256 _tokenId) public payable {
@@ -43,6 +46,7 @@ contract StarNotary is ERC721 {
         address starOwner = this.ownerOf(_tokenId);
         require(msg.value >= starCost, "Sender has insufficient funds");
 
+        // TODO turn this into a safeTransfer?
         // Remove the token from the owner
         _removeTokenFrom(starOwner, _tokenId);
         // Add the token to the sender
@@ -54,6 +58,16 @@ contract StarNotary is ERC721 {
         if(msg.value > starCost) { 
             msg.sender.transfer(msg.value - starCost);
         }
+    }
+
+    function tokenIdToStarInfo(uint256 _tokenId) public view returns (string, string, string, string) {
+        require(usedTokenIds[_tokenId], "Invalid token");
+        Star storage star = tokenIdToStarInfo[_tokenId];
+        return (star.dec, star.mag, star.cent, star.starStory);
+    }
+
+    function _getStarsForSale() public view returns (uint256[]) {
+        return starsTokenIdsForSale;
     }
 
     // Helper methods

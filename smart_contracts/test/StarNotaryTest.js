@@ -116,6 +116,51 @@ contract('StarNotary', accounts => {
         });
     });
 
+    describe('Stars for Sale', () => {
+        let tokenId;
+        let tx;
+        beforeEach(async () => {
+            tokenId = await contract._getTokenIdFromStarDetails('A', 'B', 'C');
+            tx = await contract.createStar('A', 'B', 'C', 'story', {
+                from: user1
+            });
+            tokenId2 = await contract._getTokenIdFromStarDetails('A', 'B', 'C');
+            tx2 = await contract.createStar('A', 'A', 'A', 'story', {
+                from: user1
+            });
+        });
+        it('returns empty list', async () => {
+            const stars = await contract._getStarsForSale();
+            assert.equal(stars.length, 0);
+        });
+        it('returns single star', async () => {
+            await contract.putStarUpForSale(tokenId, 12, {
+                from: user1
+            });
+            const stars = await contract._getStarsForSale();
+            assert.equal(stars.length, 1);
+            assert(contract._starIsForSale(stars[0]));
+            const starInfoArray = await contract.tokenIdToStarInfo(stars[0]);
+            assert(starInfoArray.includes('A') &&
+                 starInfoArray.includes('B') &&
+                 starInfoArray.includes('C') &&
+                 starInfoArray.includes('story')
+            );
+        });
+        it('returns multiple star', async () => {
+            await contract.putStarUpForSale(tokenId, 12, {
+                from: user1
+            });
+            await contract.putStarUpForSale(tokenId2, 12, {
+                from: user1
+            });
+            const stars = await contract._getStarsForSale();
+            assert.equal(stars.length, 2);
+            assert(contract._starIsForSale(stars[0]));
+            assert(contract._starIsForSale(stars[1]));
+        });
+    });
+
     describe('A user can purchase a star this is for sale', () => {
         let tokenId;
         let tx;
@@ -184,15 +229,152 @@ contract('StarNotary', accounts => {
         });
 
         it('returns True', async () => {
-            const tokenExists = await contract._checkIfTokenExists(tokenId);
+            const tokenExists = await contract._checkIfTokenExists(tokenId, {from: user1});
             assert.equal(tokenExists, true);
         });
 
         it('returns false', async () => {
-            const tokenExists = await contract._checkIfTokenExists('0x00');
+            const tokenExists = await contract._checkIfTokenExists('0x00', {
+                from: user1
+            });
             assert.equal(tokenExists, false);
         });
     });
+    describe('Approve to sell', async () => {
+        let tokenId;
+        let tx;
 
+        beforeEach(async () => {
+            tokenId = await contract._getTokenIdFromStarDetails('A', 'B', 'C');
+            tx = await contract.createStar('A', 'B', 'C', 'story', {
+                from: user1
+            });
+        });
 
+        it('works', async () => {
+            const approveTx = await contract.approve(user2, tokenId, {
+                from: user1
+            });
+            assert.equal(await contract.getApproved(tokenId), user2);
+            assert.equal(approveTx.logs[0].event, 'Approval');
+        });
+
+        it('cannot approve yourself', async () => {
+            try {
+                await contract.approve(user1, tokenId, {
+                    from: user1
+                });
+                assert.fail();
+            } catch (e) {
+                assert.equal(e.message, 'VM Exception while processing transaction: revert');
+            }
+        });
+    });
+
+    describe('Safe transfer from', async () => {
+        let tokenId;
+        let tx;
+
+        beforeEach(async () => {
+            tokenId = await contract._getTokenIdFromStarDetails('A', 'B', 'C');
+            tx = await contract.createStar('A', 'B', 'C', 'story', {
+                from: user1
+            });
+        });
+
+        it('works', async () => {
+            await contract.safeTransferFrom(user1, user2, tokenId, {
+                from: user1
+            });
+            assert.equal(await contract.ownerOf(tokenId), user2);
+        });
+
+        it('cannot transfer to yourself', async () => {
+            try {
+                await contract.approve(user1, tokenId, {
+                    from: user1
+                });
+                assert.fail();
+            } catch (e) {
+                assert.equal(e.message, 'VM Exception while processing transaction: revert');
+            }
+        });
+
+        it('cannot transfer star you do not own', async () => {
+            try {
+                await contract.approve(user2, tokenId, {
+                    from: user2
+                });
+                assert.fail();
+            } catch (e) {
+                assert.equal(e.message, 'VM Exception while processing transaction: revert');
+            }
+        });
+    });
+
+    describe('Approve to sell all', async () => {
+        it('can enable approve all', async () => {
+            const approveAllTx = await contract.setApprovalForAll(user2, true, {
+                from: user1
+            });
+            assert.equal(await contract.isApprovedForAll(user1, user2), true);
+            assert.equal(approveAllTx.logs[0].event, 'ApprovalForAll');
+        });
+
+        it('can disable approve all', async () => {
+            let approveAllTx;
+            approveAllTx = await contract.setApprovalForAll(user2, true, {
+                from: user1
+            });
+            assert.equal(await contract.isApprovedForAll(user1, user2), true);
+            assert.equal(approveAllTx.logs[0].event, 'ApprovalForAll');
+            approveAllTx = await contract.setApprovalForAll(user2, false, {
+                from: user1
+            });
+            assert.equal(await contract.isApprovedForAll(user1, user2), false);
+            assert.equal(approveAllTx.logs[0].event, 'ApprovalForAll');
+        });
+
+        it('cannot approval all yourself', async () => {
+            try {
+                await contract.setApprovalForAll(user1, true, {
+                    from: user1
+                });
+                assert.fail();
+            } catch (e) {
+                assert.equal(e.message, 'VM Exception while processing transaction: revert');
+            }
+        });
+    });
+
+    describe('Token id to star info', () => {
+        let tokenId;
+        let tx;
+        beforeEach(async () => {
+            tokenId = await contract._getTokenIdFromStarDetails('A', 'B', 'C');
+        });
+        it('throws excpetion if star does not exist', async () => {
+           try {
+               await contract.tokenIdToStarInfo(tokenId, {
+                   from: user1
+               });
+               assert.fail();
+           } catch (e) {
+               assert.equal(e.message, 'VM Exception while processing transaction: revert Invalid token');
+           }
+        });
+        it('returns single star info', async () => {
+            tx = await contract.createStar('A', 'B', 'C', 'story', {
+                from: user1
+            });
+            const starInfoArray = await contract.tokenIdToStarInfo(tokenId, {
+                from: user1
+            });
+            assert(starInfoArray.includes('A') && 
+                starInfoArray.includes('B') &&
+                starInfoArray.includes('C') && 
+                starInfoArray.includes('story')
+            );
+        });
+    });
 });
